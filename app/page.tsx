@@ -21,6 +21,13 @@ export default function HomePage() {
             tampilan yang rapi dan mudah dipahami.
           </p>
 
+          {/* Short line for recruiters (English) */}
+          <p className="mt-2 text-xs md:text-sm text-slate-400 max-w-xl">
+            Built as a full-stack case study to demonstrate real-world problem
+            solving: authentication, role-based access, inventory logic, and
+            daily sales analytics.
+          </p>
+
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/dashboard"
@@ -52,15 +59,15 @@ export default function HomePage() {
             <li className="flex gap-2">
               <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />
               <span>
-                <span className="font-medium">Dashboard harian</span> —
-                pantau omzet dan jumlah transaksi per hari.
+                <span className="font-medium">Dashboard harian</span> — pantau
+                omzet dan jumlah transaksi per hari.
               </span>
             </li>
             <li className="flex gap-2">
               <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />
               <span>
-                <span className="font-medium">Alert stok rendah</span> — dapatkan
-                daftar produk yang perlu di-restock sebelum kehabisan.
+                <span className="font-medium">Alert stok rendah</span> —
+                dapatkan daftar produk yang perlu di-restock sebelum kehabisan.
               </span>
             </li>
             <li className="flex gap-2">
@@ -103,12 +110,45 @@ export default function HomePage() {
         </div>
         <div className="rounded-2xl border bg-white px-4 py-4 shadow-sm">
           <p className="text-xs font-semibold text-slate-700">
-            Untuk recruiter
+            For recruiters & hiring managers
           </p>
           <p className="mt-2 text-xs text-slate-500">
-            Project ini menunjukkan kemampuan fullstack: Next.js, Prisma,
-            PostgreSQL, JWT (access & refresh token), dan role-based access yang
-            mendekati kebutuhan sistem produksi.
+            This project showcases end-to-end skills: full-stack Next.js,
+            PostgreSQL with Prisma, JWT auth with refresh tokens, role-based
+            access, and a business-oriented dashboard instead of a simple CRUD
+            demo.
+          </p>
+        </div>
+      </section>
+
+      {/* Recruiter-focused English section */}
+      <section className="mt-2 rounded-2xl border bg-white px-5 py-5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold text-slate-700 uppercase tracking-[0.18em]">
+            For recruiters
+          </p>
+          <h2 className="mt-2 text-sm md:text-base font-semibold text-slate-900">
+            A practical case study instead of a toy project.
+          </h2>
+          <p className="mt-1 text-xs md:text-sm text-slate-500 max-w-xl">
+            WarungFlow is designed as a real-world scenario: small retailers,
+            inventory constraints, and simple but secure access control. I use it
+            to demonstrate how I approach requirements, data modelling, and
+            trade-offs in a production-like environment.
+          </p>
+        </div>
+
+        <div className="flex flex-col items-start gap-2">
+          <Link
+            href="https://github.com/Buzzkara71/warungflow#readme"
+            target="_blank"
+            className="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+          >
+            View Case Study
+          </Link>
+          <p className="text-[11px] text-slate-400 max-w-xs">
+            The case study explains the problem, reasoning, architecture, and
+            key technical decisions behind this project.
           </p>
         </div>
       </section>

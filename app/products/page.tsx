@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
+import { useCurrentUser } from "@/lib/useCurrentUser";
 
 type Product = {
   id: number;
@@ -26,6 +27,9 @@ export default function ProductsPage() {
 
   const [search, setSearch] = useState("");
 
+  const { user, loading: loadingUser } = useCurrentUser();
+  const isAdmin = user?.role === "admin";
+
   async function fetchProducts() {
     try {
       setLoading(true);
@@ -50,6 +54,11 @@ export default function ProductsPage() {
 
   async function handleAddProduct(e: FormEvent) {
     e.preventDefault();
+
+    if (!isAdmin) {
+      alert("Hanya admin yang dapat menambah produk.");
+      return;
+    }
 
     if (!name || !price || !stock) {
       alert("Nama, harga, dan stok wajib diisi.");
@@ -131,6 +140,12 @@ export default function ProductsPage() {
           <p className="mt-1 text-sm text-slate-500">
             Kelola daftar produk, harga, dan stok warung Anda.
           </p>
+          {!loadingUser && user && !isAdmin && (
+            <p className="mt-1 text-xs text-amber-600">
+              Anda login sebagai kasir. Halaman ini hanya dapat digunakan untuk{" "}
+              <span className="font-semibold">melihat</span> produk dan stok.
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 shadow-sm">
           <span className="h-2 w-2 rounded-full bg-emerald-500" />
@@ -140,101 +155,130 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {/* Form + search */}
-      <section className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
-        {/* Form */}
-        <div className="rounded-2xl border bg-white px-4 py-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-800">
-            Tambah Produk
-          </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Masukkan produk baru yang akan dijual di warung.
-          </p>
-          <form
-            onSubmit={handleAddProduct}
-            className="mt-4 grid gap-3 md:grid-cols-2"
-          >
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-slate-700">
-                Nama Produk<span className="text-red-500">*</span>
-              </label>
+      {/* Form + search / Kasir view-only */}
+      {isAdmin ? (
+        <section className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
+          {/* Form admin */}
+          <div className="rounded-2xl border bg-white px-4 py-4 shadow-sm">
+            <h2 className="text-sm font-semibold text-slate-800">
+              Tambah Produk
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Masukkan produk baru yang akan dijual di warung.
+            </p>
+            <form
+              onSubmit={handleAddProduct}
+              className="mt-4 grid gap-3 md:grid-cols-2"
+            >
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-700">
+                  Nama Produk<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Indomie Goreng"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-700">
+                  Kategori
+                </label>
+                <input
+                  type="text"
+                  className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="Makanan, Minuman, Lainnya"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-700">
+                  Harga (Rp)<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="3500"
+                  min={0}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-700">
+                  Stok<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                  placeholder="10"
+                  min={0}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-700">
+                  Batas Stok Rendah (opsional)
+                </label>
+                <input
+                  type="number"
+                  className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
+                  value={lowStockThreshold}
+                  onChange={(e) => setLowStockThreshold(e.target.value)}
+                  placeholder="3"
+                  min={0}
+                />
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                >
+                  Simpan Produk
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Search & info */}
+          <div className="flex flex-col gap-3">
+            <div className="rounded-2xl border bg-white px-4 py-4 shadow-sm">
+              <p className="text-xs font-semibold text-slate-800">
+                Cari Produk
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Filter berdasarkan nama atau kategori.
+              </p>
               <input
                 type="text"
-                className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Indomie Goreng"
+                className="mt-3 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
+                placeholder="Contoh: indomie, minuman, snack..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-slate-700">
-                Kategori
-              </label>
-              <input
-                type="text"
-                className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="Makanan, Minuman, Lainnya"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-slate-700">
-                Harga (Rp)<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="3500"
-                min={0}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-slate-700">
-                Stok<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                placeholder="10"
-                min={0}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-slate-700">
-                Batas Stok Rendah (opsional)
-              </label>
-              <input
-                type="number"
-                className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
-                value={lowStockThreshold}
-                onChange={(e) => setLowStockThreshold(e.target.value)}
-                placeholder="3"
-                min={0}
-              />
-            </div>
-
-            <div className="flex items-end">
-              <button
-                type="submit"
-                className="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-              >
-                Simpan Produk
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Search & info */}
-        <div className="flex flex-col gap-3">
+          </div>
+        </section>
+      ) : (
+        <section className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.3fr)]">
+          <div className="rounded-2xl border bg-white px-4 py-4 shadow-sm">
+            <h2 className="text-sm font-semibold text-slate-800">
+              Mode kasir (view only)
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Anda tidak dapat menambah atau mengedit produk dari akun kasir.
+              Gunakan akun admin untuk mengelola katalog produk dan stok.
+            </p>
+          </div>
           <div className="rounded-2xl border bg-white px-4 py-4 shadow-sm">
             <p className="text-xs font-semibold text-slate-800">
               Cari Produk
@@ -250,8 +294,8 @@ export default function ProductsPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Tabel Produk */}
       <section className="rounded-2xl border bg-white px-4 py-4 shadow-sm space-y-3">
