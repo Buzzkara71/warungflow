@@ -18,8 +18,7 @@ export function AppHeader() {
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const isAuthPage =
-    pathname === "/login" || pathname === "/register";
+  const isAuthPage = pathname === "/login" || pathname === "/register";
 
   useEffect(() => {
     if (isAuthPage) {
@@ -34,8 +33,6 @@ export function AppHeader() {
         let res = await fetch("/api/auth/me", {
           cache: "no-store",
         });
-
-        // Kalau access token expired → coba refresh
         if (res.status === 401) {
           const refreshRes = await fetch("/api/auth/refresh", {
             method: "POST",
@@ -45,8 +42,6 @@ export function AppHeader() {
             setUser(null);
             return;
           }
-
-          // coba lagi
           res = await fetch("/api/auth/me", {
             cache: "no-store",
           });
@@ -85,17 +80,46 @@ export function AppHeader() {
     }
   }
 
+  const navItems = [
+    { href: "/products", label: "Produk" },
+    { href: "/sales", label: "Transaksi" },
+  ];
+
   return (
-    <header className="bg-white border-b px-4 py-3 flex justify-between items-center">
-      <span className="text-sm font-medium text-slate-800">
+    <header className="flex items-center justify-between border-b bg-white px-4 py-3 shadow-sm md:px-8">
+      <div className="text-sm font-semibold text-slate-900">
         WarungFlow
-      </span>
-      <div className="flex items-center gap-3">
+      </div>
+
+      {/* Middle Nav  */}
+      <nav className="flex items-center gap-2 text-xs md:text-sm">
+        {navItems.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`rounded-full px-3 py-1.5 font-medium transition ${
+                active
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* User Info + login/logout */}
+      <div className="flex items-center gap-2 text-xs md:text-sm">
         {!loading && user && (
-          <span className="text-xs md:text-sm text-slate-600">
+          <span className="hidden text-slate-600 sm:inline">
             Halo,{" "}
-            <span className="font-medium">{user.name}</span>{" "}
-            <span className="text-[10px] md:text-xs uppercase text-slate-400 ml-1">
+            <span className="font-medium text-slate-800">
+              {user.name}
+            </span>{" "}
+            <span className="ml-1 text-[10px] uppercase text-emerald-600">
               ({user.role})
             </span>
           </span>
@@ -104,18 +128,17 @@ export function AppHeader() {
         {!loading && !user && (
           <Link
             href="/login"
-            className="text-xs md:text-sm text-slate-700 hover:underline"
+            className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800"
           >
             Login
           </Link>
         )}
-
         {!loading && user && (
           <button
             type="button"
             onClick={handleLogout}
             disabled={loggingOut}
-            className="text-xs md:text-sm text-slate-700 hover:underline disabled:opacity-60"
+            className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
             {loggingOut ? "Keluar..." : "Logout"}
           </button>
