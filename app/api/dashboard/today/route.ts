@@ -53,15 +53,22 @@ export async function GET(req: Request) {
 
     const totalSalesAmount = salesAgg._sum.totalPrice ?? 0;
 
+  type LowStockCandidate = {
+  id: number;
+  name: string;
+  stock: number;
+  lowStockThreshold: number;
+};
+
     // Product Filter <= threshold 
-    const lowStockProducts = lowStockCandidates
-      .filter((p) => p.stock <= p.lowStockThreshold)
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        stock: p.stock,
-        lowStockThreshold: p.lowStockThreshold,
-      }));
+    const lowStockProducts = (lowStockCandidates as LowStockCandidate[])
+  .filter((p: LowStockCandidate) => p.stock <= p.lowStockThreshold)
+  .map((p: LowStockCandidate) => ({
+    id: p.id,
+    name: p.name,
+    stock: p.stock,
+    lowStockThreshold: p.lowStockThreshold,
+  }));
 
     return NextResponse.json({
       date: start.toISOString().slice(0, 10),
