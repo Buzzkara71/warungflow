@@ -1,25 +1,38 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 
-// string date (YYYY-MM-DD)
+type CartItemInput = {
+  productId: number;
+  quantity: number;
+};
+
+type ProductForSale = {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;
+  lowStockThreshold: number;
+};
+
 function getDateRange(dateStr?: string) {
-  const now = new Date();
-  const target = dateStr ? new Date(dateStr) : now;
-
-  const start = new Date(target);
+  const base = dateStr ? new Date(dateStr) : new Date();
+  const start = new Date(base);
   start.setHours(0, 0, 0, 0);
-
-  const end = new Date(target);
+  const end = new Date(base);
   end.setHours(23, 59, 59, 999);
-
   return { start, end };
 }
 
-// GET /api/sales?date=YYYY-MM-DD 
-export async function GET(req: Request) {
+// GET /api/sales?date=YYYY-MM-DD
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const user = await getCurrentUser();
+    if (!user) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
     const dateStr = searchParams.get("date") ?? undefined;
     const { start, end } = getDateRange(dateStr);
 
@@ -42,46 +55,56 @@ export async function GET(req: Request) {
 
     return NextResponse.json(sales);
   } catch (error) {
-    console.error("Error fetching sales:", error);
+    console.error("Error in GET /api/sales:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 
 // POST /api/sales
-export async function POST(req: Request) {
-  try{
-    const body = await req.json();
-    const { items } = body as {
-      items: { productId: number; quantity: number }[];
-    };
-
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return new NextResponse("Items tidak boleh kosong", { status: 400 });
-    }
-    for (const item of items) {
-      if (
-        !item.productId ||
-        typeof item.productId !== "number" ||
-        !item.quantity ||
-        typeof item.quantity !== "number" ||
-        item.quantity <= 0
-      ) {
-        return new NextResponse(
-          "Setiap item harus punya productId (number) dan quantity > 0",
-          { status: 400 }
-        );
-      }
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // GET ALL related product
-    const productIds = items.map((i) => i.productId);
-    const products = await prisma.product.findMany({
+    const body = await request.json();
+    const { items } = body as { items: CartItemInput[] };
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return new NextResponse("Items array is required", { status: 400 });
+    }
+
+
+    const productIds: number[] = Array.from(
+      new Set(
+        items
+          .map((item: CartItemInput) => item.productId)
+          .filter((id: number) => typeof id === "number")
+      )
+    );
+
+    if (productIds.length === 0) {
+      return new NextResponse("No valid productId in items", {
+        status: 400,
+      });
+    }
+    const products: ProductForSale[] = await prisma.product.findMany({
       where: { id: { in: productIds } },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+        lowStockThreshold: true,
+      },
     });
 
-    // inventory stock check
-    const productMap = new Map(products.map((p) => [p.id, p]));
-    for (const item of items) {
+    const productMap = new Map<number, ProductForSale>(
+      products.map((p: ProductForSale) => [p.id, p])
+    );
+
+    for (const item of items as CartItemInput[]) {
       const product = productMap.get(item.productId);
       if (!product) {
         return new NextResponse(
@@ -89,6 +112,13 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
+
+      if (item.quantity <= 0) {
+        return new NextResponse("Quantity harus lebih dari 0", {
+          status: 400,
+        });
+      }
+
       if (item.quantity > product.stock) {
         return new NextResponse(
           `Stok tidak cukup untuk produk "${product.name}". Stok: ${product.stock}, diminta: ${item.quantity}`,
@@ -96,45 +126,47 @@ export async function POST(req: Request) {
         );
       }
     }
-    // Get user from Cookies (login required)
-    const user = await getCurrentUser();
-    if (!user) {
-    return new NextResponse("Unauthorized", { status: 401 });
-}
-    const result = await prisma.$transaction(async (tx) => {
-     
-       // count totalPrice
-      let totalPrice = 0;
-      for (const item of items) {
-        const product = productMap.get(item.productId)!;
-        totalPrice += product.price * item.quantity;
-      }
 
-      // Sale Record
-      const sale = await tx.sale.create({
+    // Count TOTAL
+    const totalPrice = (items as CartItemInput[]).reduce(
+      (total: number, item: CartItemInput) => {
+        const product = productMap.get(item.productId);
+        if (!product) return total;
+        return total + product.price * item.quantity;
+      },
+      0
+    );
+
+    // Save sale + items + stock update
+    const sale = await prisma.$transaction(async (tx) => {
+      const createdSale = await tx.sale.create({
         data: {
           userId: user.id,
           totalPrice,
+          items: {
+            create: (items as CartItemInput[]).map(
+              (item: CartItemInput) => {
+                const product = productMap.get(item.productId)!;
+                return {
+                  productId: product.id,
+                  quantity: item.quantity,
+                  price: product.price,
+                };
+              }
+            ),
+          },
+        },
+        include: {
+          items: {
+            include: { product: true },
+          },
         },
       });
 
-      // SaleItem + Stock Update
-      for (const item of items) {
-        const product = productMap.get(item.productId)!;
-
-        // buat item
-        await tx.saleItem.create({
-          data: {
-            saleId: sale.id,
-            productId: product.id,
-            quantity: item.quantity,
-            price: product.price, 
-          },
-        });
-
-        // Stock update (decrease)
+      // update stock
+      for (const item of items as CartItemInput[]) {
         await tx.product.update({
-          where: { id: product.id },
+          where: { id: item.productId },
           data: {
             stock: {
               decrement: item.quantity,
@@ -143,23 +175,12 @@ export async function POST(req: Request) {
         });
       }
 
-      // Get all item and product
-      const fullSale = await tx.sale.findUnique({
-        where: { id: sale.id },
-        include: {
-          items: {
-            include: { product: true },
-          },
-          user: true,
-        },
-      });
-
-      return fullSale;
+      return createdSale;
     });
 
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(sale, { status: 201 });
   } catch (error) {
-    console.error("Error creating sale:", error);
+    console.error("Error in POST /api/sales:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
