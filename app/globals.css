@@ -1,15 +1,12 @@
 @import "tailwindcss";
 
-:root {
-  color-scheme: light;
-}
-
 html,
 body {
   margin: 0;
   padding: 0;
-  background-color: #f1f5f9;
-  color: #020617; 
+  min-height: 100%;
+  background-color: #f1f5f9; 
+  color: #020617;
 }
 
 @theme inline {
