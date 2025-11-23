@@ -80,10 +80,17 @@ export function AppHeader() {
     }
   }
 
-  const navItems = [
-    { href: "/products", label: "Produk" },
-    { href: "/sales", label: "Transaksi" },
-  ];
+  const ALL_NAV = [
+  { href: "/dashboard", label: "Dashboard", role: "admin" },
+  { href: "/products", label: "Produk", role: "all" },
+  { href: "/sales", label: "Transaksi", role: "all" },
+];
+
+const navItems = ALL_NAV.filter(item => {
+  if (item.role === "all") return true;
+  if (item.role === "admin" && user?.role === "admin") return true;
+  return false;
+});
 
   return (
     <header className="flex items-center justify-between border-b bg-white px-4 py-3 shadow-sm md:px-8">
