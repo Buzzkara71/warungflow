@@ -8,9 +8,11 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="grid gap-6 lg:grid-cols-[1.6fr,1fr] items-center">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600 mb-3">
-            WarungFlow • POS & Inventory
+          <p className="font-semibold uppercase tracking-[0.15em] text-emerald-600 mb-3 flex items-center gap-1">
+            <span className="text-[11px]">WarungFlow •</span>
+            <span className="text-[7.5px] opacity-80"> POS & Inventory</span>
           </p>
+          
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900">
             Kendalikan penjualan & stok warung{" "}
             <span className="text-emerald-600">tanpa file Excel yang ribet.</span>
@@ -105,7 +107,7 @@ export default function HomePage() {
           </p>
           <p className="mt-2 text-xs text-slate-500">
             Tampilan sederhana untuk input transaksi. Kasir cukup pilih produk,
-            isi jumlah, dan simpan — semua stok di belakang akan ikut ter-update.
+            isi jumlah, dan simpan semua stok di belakang akan ikut ter-update.
           </p>
         </div>
         <div className="rounded-2xl border bg-white px-4 py-4 shadow-sm">

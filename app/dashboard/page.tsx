@@ -40,7 +40,7 @@ export default function DashboardPage() {
       setData(json);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Terjadi kesalahan");
+      setError(err.message || "Bukan admin");
     } finally {
       setLoading(false);
     }

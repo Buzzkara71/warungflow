@@ -1,115 +1,81 @@
 "use client";
 
+import { Fragment, useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useCurrentUser } from "@/lib/useCurrentUser";
 
-type MeResponse = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-};
-
-export function AppHeader() {
-  const router = useRouter();
+export default function AppHeader() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const [user, setUser] = useState<MeResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loggingOut, setLoggingOut] = useState(false);
+  const router = useRouter();
+  const { user } = useCurrentUser();
 
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isLoggedIn = !!user;
+  const isAdmin = user?.role === "admin";
 
-  useEffect(() => {
-    if (isAuthPage) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
-    async function fetchUserWithRefresh() {
-      try {
-        setLoading(true);
-        let res = await fetch("/api/auth/me", {
-          cache: "no-store",
-        });
-        if (res.status === 401) {
-          const refreshRes = await fetch("/api/auth/refresh", {
-            method: "POST",
-          });
-
-          if (!refreshRes.ok) {
-            setUser(null);
-            return;
-          }
-          res = await fetch("/api/auth/me", {
-            cache: "no-store",
-          });
-        }
-
-        if (!res.ok) {
-          setUser(null);
-          return;
-        }
-
-        const data: MeResponse = await res.json();
-        setUser(data);
-      } catch (e) {
-        console.error(e);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchUserWithRefresh();
-  }, [pathname, isAuthPage]);
-
-  if (isAuthPage) return null;
+  const navItems = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/products", label: "Produk" },
+  { href: "/sales", label: "Transaksi" },
+];
 
   async function handleLogout() {
     try {
-      setLoggingOut(true);
       await fetch("/api/auth/logout", { method: "POST" });
-      setUser(null);
-      router.push("/login");
     } catch (e) {
       console.error(e);
     } finally {
-      setLoggingOut(false);
+      setMobileOpen(false);
+      router.push("/login");
+      router.refresh();
     }
   }
 
-  const ALL_NAV = [
-  { href: "/dashboard", label: "Dashboard", role: "admin" },
-  { href: "/products", label: "Produk", role: "all" },
-  { href: "/sales", label: "Transaksi", role: "all" },
-];
-
-const navItems = ALL_NAV.filter(item => {
-  if (item.role === "all") return true;
-  if (item.role === "admin" && user?.role === "admin") return true;
-  return false;
-});
-
+  function handleNav(href: string) {
+    setMobileOpen(false);
+    router.push(href);
+  }
   return (
-    <header className="flex items-center justify-between border-b bg-white px-4 py-3 shadow-sm md:px-8">
-      <div className="text-sm font-semibold text-slate-900">
-        WarungFlow
-      </div>
+    <>
 
-      {/* Middle Nav  */}
-      <nav className="flex items-center gap-2 text-xs md:text-sm">
+  <header className="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
+    <div className="flex w-full items-center justify-between px-4 py-3 md:px-6">
+
+    {/* Left: Logo */}
+    <div className="flex gap-2">
+      <Link
+        href="/"
+        className="text-sm font-semibold tracking-tight text-slate-900 hover:text-slate-700"
+      >
+        WarungFlow
+      </Link>
+      <span className="hidden md:inline rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-medium text-emerald-700">
+        Portfolio Project
+      </span>
+    </div>
+
+    {/* Right: Nav + Login */}
+    <div className="hidden items-center gap-4 md:flex">
+      <nav className="flex items-center gap-3">
         {navItems.map((item) => {
           const active = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-full px-3 py-1.5 font-medium transition ${
+              className={`rounded-full px-3 py-1.5 text-xs md:text-sm font-medium transition ${
                 active
-                  ? "bg-slate-900 text-white"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-700 hover:bg-slate-200"
               }`}
             >
               {item.label}
@@ -118,39 +84,152 @@ const navItems = ALL_NAV.filter(item => {
         })}
       </nav>
 
-      {/* User Info + login/logout */}
-      <div className="flex items-center gap-2 text-xs md:text-sm">
-        {!loading && user && (
-          <span className="hidden text-slate-600 sm:inline">
-            Halo,{" "}
-            <span className="font-medium text-slate-800">
-              {user.name}
-            </span>{" "}
-            <span className="ml-1 text-[10px] uppercase text-emerald-600">
-              ({user.role})
-            </span>
-          </span>
-        )}
+      
+      {isLoggedIn ? (
+  <div className="flex items-center gap-3">
+    <span className="text-xs text-slate-700 font-medium">
+      {user?.name} 
+      <span className="uppercase text-[10px] ml-1 text-emerald-600">
+        ({user?.role})
+      </span>
+    </span>
 
-        {!loading && !user && (
-          <Link
-            href="/login"
-            className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800"
+    <button
+      type="button"
+      onClick={handleLogout}
+      className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+    >
+      Logout
+    </button>
+  </div>
+) : (
+  <Link
+    href="/login"
+    className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-slate-800"
+  >
+    Login
+  </Link>
+)}
+    </div>
+
+    {/* Mobile hamburger */}
+    <button
+      onClick={() => setMobileOpen(true)}
+      className="md:hidden rounded-md border border-slate-300 p-1.5 text-slate-700 hover:bg-slate-100"
+    >
+      <Bars3Icon className="h-5 w-5" />
+    </button>
+  </div>
+</header>
+
+      {/* Mobile slide-over menu */}
+      <Transition show={mobileOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-40 md:hidden" onClose={setMobileOpen}>
+          <TransitionChild
+            as={Fragment}
+            enter="transition-opacity ease-out duration-200"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transition-opacity ease-in duration-150"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
           >
-            Login
-          </Link>
-        )}
-        {!loading && user && (
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-          >
-            {loggingOut ? "Keluar..." : "Logout"}
-          </button>
-        )}
-      </div>
-    </header>
+            <div className="fixed inset-0 bg-slate-900/30" />
+          </TransitionChild>
+
+          <div className="fixed inset-0 flex justify-end">
+            <TransitionChild
+              as={Fragment}
+              enter="transition ease-out duration-200 transform"
+              enterFrom="translate-x-full"
+              enterTo="translate-x-0"
+              leave="transition ease-in duration-150 transform"
+              leaveFrom="translate-x-0"
+              leaveTo="translate-x-full"
+            >
+              <DialogPanel className="flex h-full w-64 flex-col border-l bg-white shadow-xl">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <div className="flex flex-col">
+                    <DialogTitle className="text-sm font-semibold text-slate-900">
+                      Navigation
+                    </DialogTitle>
+                    {user && (
+                      <p className="text-[11px] text-slate-500">
+                        {user.name}{" "}
+                        <span className="uppercase text-[10px] text-emerald-600">
+                          ({user.role})
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="rounded-md p-1 text-slate-500 hover:bg-slate-100"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <span className="sr-only">Close menu</span>
+                    <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
+
+                {/* Nav list */}
+                <nav className="flex-1 space-y-1 px-3 py-4 text-sm">
+                  {navItems.map((item) => {
+                    const active = pathname === item.href;
+                    return (
+                      <button
+                        key={item.href}
+                        onClick={() => handleNav(item.href)}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left ${
+                          active
+                            ? "bg-slate-900 text-white"
+                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {active && (
+                          <span className="text-[10px] font-medium text-emerald-200">
+                            current
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </nav>
+
+                {/* Bottom actions */}
+                <div className="border-t px-4 py-3 space-y-2">
+                  {isLoggedIn && user ? (
+                    <>
+                      <p className="text-[11px] text-slate-500">
+                        Logged in as{" "}
+                        <span className="font-medium text-slate-800">
+                          {user.name}
+                        </span>
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleNav("/login")}
+                      className="w-full rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-800"
+                    >
+                      Login
+                    </button>
+                  )}
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </Dialog>
+      </Transition>
+    </>
   );
 }
