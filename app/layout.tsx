@@ -3,7 +3,8 @@ import "./globals.css";
 import AppHeader from "@/components/layout/AppHeader";
 
 {/* SEO and Metadata purpose */}
-export const metadata = {
+export const metadata: Metadata = {
+  metadataBase: new URL("https://warungflow-nh8g.vercel.app"),
   title: "WarungFlow — POS & Inventory App",
   description:
     "WarungFlow membantu pemilik warung mencatat transaksi, memantau stok, dan melihat performa penjualan harian hanya dalam satu tampilan sederhana.",
@@ -22,11 +23,11 @@ export const metadata = {
     title: "WarungFlow — POS & Inventory App",
     description:
       "A full-stack real-world portfolio project demonstrating authentication, inventory logic, role-based access, and business dashboard.",
-    url: "https://warungflow-nh8g.vercel.app/",
+    url: "https://warungflow-nh8g.vercel.app",
     siteName: "WarungFlow",
     images: [
       {
-        url: "/public/og-warungflow.png",
+        url: "/publlic/og-warungflow.png",
         width: 1200,
         height: 630,
         alt: "WarungFlow App Preview",
