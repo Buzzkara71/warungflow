@@ -50,7 +50,7 @@ export default function AppHeader() {
   <header className="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
     <div className="flex w-full items-center justify-between px-4 py-3 md:px-6">
 
-    {/* Left: Logo */}
+    {/* Logo */}
     <div className="flex gap-2">
       <Link
         href="/"
@@ -63,26 +63,32 @@ export default function AppHeader() {
       </span>
     </div>
 
-    {/* Right: Nav + Login */}
+    {/* Nav + Login */}
     <div className="hidden items-center gap-4 md:flex">
       <nav className="flex items-center gap-3">
-        {navItems.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`rounded-full px-3 py-1.5 text-xs md:text-sm font-medium transition ${
-                active
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-700 hover:bg-slate-200"
-              }`}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+  {navItems.map((item) => {
+    const active = pathname === item.href;
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={`group relative px-3 py-1.5 text-xs md:text-sm font-medium transition-colors ${
+          active
+            ? "text-slate-900"
+            : "text-slate-700 hover:text-slate-900"
+        }`}
+      >
+        <span>{item.label}</span>
+        <span
+          className={`pointer-events-none absolute inset-x-1 -bottom-[2px] h-[2px] origin-center rounded-full bg-slate-900 transition-transform duration-200 ${
+            active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+          }`}
+        />
+      </Link>
+    );
+  })}
+</nav>
+
 
       
       {isLoggedIn ? (
@@ -173,29 +179,36 @@ export default function AppHeader() {
                 </div>
 
                 {/* Nav list */}
-                <nav className="flex-1 space-y-1 px-3 py-4 text-sm">
-                  {navItems.map((item) => {
-                    const active = pathname === item.href;
-                    return (
-                      <button
-                        key={item.href}
-                        onClick={() => handleNav(item.href)}
-                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left ${
-                          active
-                            ? "bg-slate-900 text-white"
-                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                        }`}
-                      >
-                        <span>{item.label}</span>
-                        {active && (
-                          <span className="text-[10px] font-medium text-emerald-200">
-                            current
+                  <nav className="flex-1 px-3 py-4 text-sm space-y-1">
+                    {navItems.map((item) => {
+                      const active = pathname === item.href;
+                      return (
+                        <button
+                          key={item.href}
+                          onClick={() => handleNav(item.href)}
+                          className="group relative flex w-full items-center justify-between px-3 py-2 text-left"
+                        >
+                          <span
+                            className={`text-sm font-medium ${
+                              active ? "text-slate-900" : "text-slate-700 group-hover:text-slate-900"
+                            }`}
+                          >
+                            {item.label}
                           </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </nav>
+
+                          <span
+                            className={`
+                              pointer-events-none
+                              absolute inset-x-3 -bottom-[1px] h-[2px]
+                              origin-center rounded-full bg-slate-900
+                              transition-transform duration-200
+                              ${active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}
+                            `}
+                          />
+                        </button>
+                      );
+                    })}
+                  </nav>
 
                 {/* Bottom actions */}
                 <div className="border-t px-4 py-3 space-y-2">

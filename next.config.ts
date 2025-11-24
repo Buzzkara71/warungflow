@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
+  metadataBase: new URL("https://warungflow-nh8g.vercel.app"),
 };
 
 export default nextConfig;
+

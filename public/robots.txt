@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://warungflow-nh8g.vercel.app/
+
+# Sitemaps
+Sitemap: https://warungflow-nh8g.vercel.app/sitemap.xml
