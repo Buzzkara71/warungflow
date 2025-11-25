@@ -1,6 +1,7 @@
 # WarungFlow
 
-Access it here [Warung Flow](https://warungflow-nh8g.vercel.app/)
+**Live Demo:**  
+https://warungflow-nh8g.vercel.app
 
 A simple POS and inventory management system for small shops (UMKM), built with **Next.js Fullstack + PostgreSQL**, designed with a strong **problem-solving mindset** instead of just CRUD. This project demonstrates authentication security, inventory logic, transactional consistency, and clear user experience.
 ---
@@ -36,6 +37,7 @@ WarungFlow focuses on clarity, ease of use, and business logic that reflects rea
 | Daily dashboard | See revenue, transactions, and critical stock |
 | Role-based access | Secure separation between **admin** and **cashier** |
 | Secure authentication | HttpOnly cookies, short-lived access token + refresh token |
+| Metadata & OpenGraph with standard latest Next.js |
 
 This is not a basic CRUD — the system **automatically updates stock on sales**, validates quantities, and refreshes user sessions securely.
 

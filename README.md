@@ -1,19 +1,30 @@
 # WarungFlow
+
+**Live Demo:**  
+https://warungflow-nh8g.vercel.app
+
+**English version:** `README_eng.md`  
 `Please read the English version at README_eng.md`
 
-Akses disini [Warung Flow](https://warungflow-nh8g.vercel.app/)
+WarungFlow adalah aplikasi **kasir digital** dan **manajemen stok** untuk pemilik warung / UMKM kecil.  
+Tidak hanya CRUD, tetapi dirancang dengan pendekatan **real-world problem solving** seperti:
 
-Sistem kasir & manajemen stok sederhana untuk UMKM, dibangun dengan **Next.js Fullstack + PostgreSQL** dan didesain dengan mindset **problem solving**, bukan sekadar CRUD.
+- pengurangan stok otomatis,
+- alert stok rendah,
+- role-based access (Admin/Kasir),
+- dan authentication modern menggunakan **Access + Refresh Token**.
 
 ---
 
-## Latar Belakang Masalah
+## Masalah Dunia Nyata yang Diselesaikan
 
-Banyak warung / UMKM kecil masih mencatat:
+Banyak warung masih menggunakan metode manual:
 
-- stok barang di buku tulis,
-- penjualan di kertas atau catatan HP,
-- dan hanya mengecek barang habis **ketika sudah benar-benar kosong**.
+| Masalah | Dampak |
+|--------|--------|
+| Catatan di buku / HP | Rentan salah & tidak tersusun |
+| Tidak ada pengecekan stok | Owner baru sadar ketika barang habis |
+| Tidak tahu omzet harian | Tidak bisa evaluasi performa toko |
 
 Akibatnya:
 
@@ -36,13 +47,18 @@ Akibatnya:
 
 ## Solusi: WarungFlow
 
-WarungFlow adalah aplikasi web sederhana yang fokus pada:
+WarungFlow membantu pemilik usaha dengan:
 
-1. **Pencatatan penjualan** (multi-item / keranjang)
-2. **Manajemen stok** (produk, harga, stok, batas stok rendah)
-3. **Dashboard harian** (omzet, jumlah transaksi, produk stok rendah)
-4. **Role-based access** (Admin vs Kasir)
-5. **Auth yang “serius”**: access token pendek + refresh token, HttpOnly cookie
+| Fitur | Penjelasan |
+|-------|------------|
+| 1. Multi-item transaction (cart style) | Input penjualan lebih cepat dan fleksibel |
+| 2. Manajemen produk lengkap | Nama, kategori, harga, stok, threshold stok rendah |
+| 3. Low stock alert | Ditandai otomatis saat stok mulai habis |
+| 4. Dashboard harian | Omzet, jumlah transaksi, dan daftar stok kritis |
+| 5. Role-based access | Admin dan Kasir dengan hak yang berbeda |
+| 6. Auth modern | JWT Access Token + Refresh Token via HttpOnly cookies |
+| 7. Metadata & OpenGraph dengan standar Next.js terbaru |
+| 8. Microcopy tambahan di dashboard, produk, dan transaksi |
 
 Bukan hanya “CRUD biasa”, tapi:
 
@@ -67,10 +83,11 @@ Dari sudut pandang pemilik warung, kebutuhan utama:
 
 Dari sudut pandang developer:
 
-- Butuh data yang rapi: **Product, Sale, SaleItem, User**.
-- Butuh relasi yang jelas: 1 `Sale` → banyak `SaleItem`, 1 `User` → banyak `Sale`.
-- Butuh autentikasi supaya data tidak bisa dilihat sembarang orang (role admin/kasir).
-
+- Butuh data yang rapi: **User, Product, Sale, SaleItem**.
+- Butuh relasi yang jelas: 1 `Sale` → banyak `SaleItem`.
+- Butuh autentikasi & authorization supaya:
+  - Admin bisa mengelola produk & dashboard.
+  - Kasir hanya fokus transaksi.
 ---
 
 ### 2. Translasi Masalah → Desain Sistem
@@ -253,18 +270,17 @@ Endpoint:
 
 ## Arsitektur & Tech Stack
 
-- **Framework**: Next.js (App Router, Next 15)
-- **Bahasa**: TypeScript
-- **UI**: React + Tailwind CSS (utility-first, clean & minimal)
-- **Database**: PostgreSQL
-- **ORM**: Prisma
-- **Auth**:
-  - JWT Access Token (15m)
-  - JWT Refresh Token (7d)
-  - HttpOnly cookies
-- **Role**: Admin / Kasir
-- **Routing Proteksi**:
-  - `proxy.ts` (pengganti `middleware.ts` di Next 15)
+| Bagian | Teknologi |
+|--------|-----------|
+| Framework | Next.js (App Router, Next.js 15) |
+| Bahasa | TypeScript |
+| UI | React + TailwindCSS |
+| DB | PostgreSQL |
+| ORM | Prisma |
+| Auth | JWT (Access + Refresh Token), HttpOnly cookie |
+| Role | `admin`, `cashier` |
+| Hosting | Vercel |
+| Routing proteksi | `proxy.ts` (pengganti `middleware` untuk Next 15) |
 
 ---
 
