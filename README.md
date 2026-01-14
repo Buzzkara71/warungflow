@@ -1,7 +1,7 @@
 # WarungFlow
 
 **Live Demo:**  
-https://warungflow-nh8g.vercel.app
+https://warungflow-nh8g.vercel.app (currently suspended)
 
 **English version:** `README_eng.md`  
 `Please read the English version at README_eng.md`
